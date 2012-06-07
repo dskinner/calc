@@ -196,7 +196,7 @@ namespace cscalc
 			stack = new Stack();
 		}
 		
-		public int Parse(string input)
+		public decimal Parse(string input)
 		{
 			//ITokenReceiver receiver = new PrinterReceiver();
 			//Lexer lexer = new Lexer(receiver, input);
@@ -214,7 +214,7 @@ namespace cscalc
 			switch (token)
 			{
 			case Token.Number:
-				postfix.Add(lexeme);
+				postfix.Add(decimal.Parse(lexeme));
 				break;
 			case Token.OpenParanthesis:
 				// TODO
@@ -243,30 +243,41 @@ namespace cscalc
 			}
 		}
 		
-		int evaluate()
+		decimal evaluate()
 		{
-			foreach (string val in postfix)
+			foreach (object val in postfix)
 			{
-				switch (val)
+				if (val is decimal)
+				{
+					stack.Push(val);
+					continue;
+				}
+				
+				decimal a, b;
+				
+				switch (val as string)
 				{
 				case "+":
-					stack.Push((string) (Int16.Parse((string) stack.Pop()) + Int16.Parse((string) stack.Pop())));
+					stack.Push(((decimal) stack.Pop()) + ((decimal) stack.Pop()));
 					break;
 				case "-":
-					stack.Push(Int16.Parse(stack.Pop()) - Int16.Parse(stack.Pop()));
+					a = (decimal) stack.Pop();
+					b = (decimal) stack.Pop();
+					stack.Push(b - a);
 					break;
 				case "*":
-					stack.Push(Int16.Parse(stack.Pop()) * Int16.Parse(stack.Pop()));
+					stack.Push(((decimal) stack.Pop()) * ((decimal) stack.Pop()));
 					break;
 				case "/":
-					stack.Push(Int16.Parse(stack.Pop()) / Int16.Parse(stack.Pop()));
+					a = (decimal) stack.Pop();
+					b = (decimal) stack.Pop();
+					stack.Push(b / a);
 					break;
 				default:
-					stack.Push(val);
-					break;
+					throw new Exception("TODO Unhandled operator: " + val);
 				}
 			}
-			return (int) stack.Pop();
+			return (decimal) stack.Pop();
 		}
 	}
 	
@@ -281,8 +292,15 @@ namespace cscalc
 			string input = Console.ReadLine();
 			
 			Parser parser = new Parser();
-			string val = parser.Parse(input);
-			Console.Write ("Eval: " + val);
+			decimal val = parser.Parse(input);
+			if (val % 1 == 0)
+			{
+				Console.Write ("Eval: " + ((double) val));
+			}
+			else
+			{
+				Console.Write ("Eval: " + val);
+			}
 		}
 	}
 }
