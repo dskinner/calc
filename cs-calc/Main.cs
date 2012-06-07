@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 
 namespace cscalc
 {
@@ -20,7 +21,7 @@ namespace cscalc
 	 */
 	interface ITokenReceiver
 	{
-		void receiveToken(Token token, string lexeme);
+		void ReceiveToken(Token token, string lexeme);
 	}
 	
 	/**
@@ -28,7 +29,7 @@ namespace cscalc
 	 */
 	class PrinterReceiver : ITokenReceiver
 	{
-		public void receiveToken(Token token, string lexeme)
+		public void ReceiveToken(Token token, string lexeme)
 		{
 			Console.WriteLine("received token: {0}, {1}", token, lexeme);
 		}
@@ -56,7 +57,7 @@ namespace cscalc
 			state = lexWhitespace;
 		}
 		
-		public void run()
+		public void Run()
 		{
 			while (state != null)
 			{
@@ -66,7 +67,7 @@ namespace cscalc
 		
 		void emit(Token token)
 		{
-			receiver.receiveToken(token, input.Substring(start, pos-start));
+			receiver.ReceiveToken(token, input.Substring(start, pos-start));
 		}
 		
 		void reset()
@@ -186,16 +187,86 @@ namespace cscalc
 	 */
 	class Parser : ITokenReceiver
 	{
-		public void parse(string input)
+		ArrayList postfix;
+		Stack stack;
+		
+		public Parser()
 		{
-			ITokenReceiver receiver = new PrinterReceiver();
-			Lexer lexer = new Lexer(receiver, input);
-			lexer.run();
+			postfix = new ArrayList();
+			stack = new Stack();
 		}
 		
-		public void receiveToken(Token token, string lexeme)
+		public int Parse(string input)
 		{
-			// TODO
+			//ITokenReceiver receiver = new PrinterReceiver();
+			//Lexer lexer = new Lexer(receiver, input);
+			Lexer lexer = new Lexer(this, input);
+			lexer.Run();
+			while (stack.Count != 0)
+			{
+				postfix.Add(stack.Pop());
+			}
+			return evaluate();
+		}
+		
+		public void ReceiveToken(Token token, string lexeme)
+		{
+			switch (token)
+			{
+			case Token.Number:
+				postfix.Add(lexeme);
+				break;
+			case Token.OpenParanthesis:
+				// TODO
+				break;
+			case Token.CloseParanthesis:
+				// TODO
+				break;
+			case Token.Operator:
+				if (stack.Count == 0)
+				{
+					stack.Push(lexeme);
+				}
+				else
+				{
+					string s = stack.Peek() as string;
+					if ((s.Equals("*") || s.Equals("/")) && (lexeme.Equals("+") || lexeme.Equals("-")))
+					{
+						while (stack.Count != 0)
+						{
+							postfix.Add(stack.Pop());
+						}
+					}
+					stack.Push(lexeme);
+				}
+				break;
+			}
+		}
+		
+		int evaluate()
+		{
+			foreach (string val in postfix)
+			{
+				switch (val)
+				{
+				case "+":
+					stack.Push((string) (Int16.Parse((string) stack.Pop()) + Int16.Parse((string) stack.Pop())));
+					break;
+				case "-":
+					stack.Push(Int16.Parse(stack.Pop()) - Int16.Parse(stack.Pop()));
+					break;
+				case "*":
+					stack.Push(Int16.Parse(stack.Pop()) * Int16.Parse(stack.Pop()));
+					break;
+				case "/":
+					stack.Push(Int16.Parse(stack.Pop()) / Int16.Parse(stack.Pop()));
+					break;
+				default:
+					stack.Push(val);
+					break;
+				}
+			}
+			return (int) stack.Pop();
 		}
 	}
 	
@@ -210,7 +281,8 @@ namespace cscalc
 			string input = Console.ReadLine();
 			
 			Parser parser = new Parser();
-			parser.parse(input);
+			string val = parser.Parse(input);
+			Console.Write ("Eval: " + val);
 		}
 	}
 }
