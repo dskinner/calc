@@ -14,7 +14,7 @@ namespace cscalc
 	/**
 	 * Defines current state of lexer for processing next input
 	 */
-	delegate State State(Lexer lexer);
+	delegate State State(Lexer l);
 	
 	/**
 	 * Interface to implement for handling emitted tokens of Lexer instance
@@ -95,7 +95,7 @@ namespace cscalc
 			return input[pos];
 		}
 		
-		public static State lexWhitespace(Lexer l)
+		static State lexWhitespace(Lexer l)
 		{
 			switch (l.read())
 			{
@@ -103,12 +103,14 @@ namespace cscalc
 				l.discard();
 				return lexWhitespace;
 			case '(':
+				l.next();
 				l.emit(Token.OpenParanthesis);
-				l.discard();
+				l.reset();
 				return lexWhitespace;
 			case ')':
+				l.next();
 				l.emit(Token.CloseParanthesis);
-				l.discard();
+				l.reset();
 				return lexWhitespace;
 			case '0':
 			case '1':
@@ -120,6 +122,7 @@ namespace cscalc
 			case '7':
 			case '8':
 			case '9':
+			case '.':
 				l.reset();
 				return lexNumber;
 			case '+':
@@ -135,7 +138,7 @@ namespace cscalc
 			}
 		}
 		
-		public static State lexNumber(Lexer l)
+		static State lexNumber(Lexer l)
 		{
 			switch (l.read())
 			{
@@ -149,6 +152,7 @@ namespace cscalc
 			case '7':
 			case '8':
 			case '9':
+			case '.':
 				l.next();
 				return lexNumber;
 			case EOF:
@@ -161,7 +165,7 @@ namespace cscalc
 			}
 		}
 		
-		public static State lexOperator(Lexer l)
+		static State lexOperator(Lexer l)
 		{
 			switch (l.read())
 			{
@@ -189,17 +193,17 @@ namespace cscalc
 	{
 		ArrayList postfix;
 		Stack stack;
+		//ITokenReceiver printer;
 		
 		public Parser()
 		{
 			postfix = new ArrayList();
 			stack = new Stack();
+			//printer = new PrinterReceiver();
 		}
 		
 		public decimal Parse(string input)
 		{
-			//ITokenReceiver receiver = new PrinterReceiver();
-			//Lexer lexer = new Lexer(receiver, input);
 			Lexer lexer = new Lexer(this, input);
 			lexer.Run();
 			while (stack.Count != 0)
@@ -209,18 +213,26 @@ namespace cscalc
 			return evaluate();
 		}
 		
+		
 		public void ReceiveToken(Token token, string lexeme)
 		{
+			//printer.ReceiveToken(token, lexeme);
+			
+			string s;
+			
 			switch (token)
 			{
 			case Token.Number:
 				postfix.Add(decimal.Parse(lexeme));
 				break;
 			case Token.OpenParanthesis:
-				// TODO
+				stack.Push(lexeme);
 				break;
 			case Token.CloseParanthesis:
-				// TODO
+				while ((s = stack.Pop() as string) != "(")
+				{
+					postfix.Add(s);
+				}
 				break;
 			case Token.Operator:
 				if (stack.Count == 0)
@@ -229,7 +241,7 @@ namespace cscalc
 				}
 				else
 				{
-					string s = stack.Peek() as string;
+					s = stack.Peek() as string;
 					if ((s.Equals("*") || s.Equals("/")) && (lexeme.Equals("+") || lexeme.Equals("-")))
 					{
 						while (stack.Count != 0)
