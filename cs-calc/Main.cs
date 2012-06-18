@@ -1,5 +1,8 @@
+//<%@ WebService Language="C#" Class="cscalc.MainService" %>
+
 using System;
 using System.Collections;
+using System.Web.Services;
 
 namespace cscalc
 {
@@ -129,6 +132,7 @@ namespace cscalc
 			case '-':
 			case '*':
 			case '/':
+			case '^':
 				l.reset();
 				return lexOperator;
 			case EOF:
@@ -173,6 +177,7 @@ namespace cscalc
 			case '-':
 			case '*':
 			case '/':
+			case '^':
 				l.next();
 				return lexOperator;
 			case EOF:
@@ -242,7 +247,8 @@ namespace cscalc
 				else
 				{
 					s = stack.Peek() as string;
-					if ((s.Equals("*") || s.Equals("/")) && (lexeme.Equals("+") || lexeme.Equals("-")))
+					//if ((s.Equals("*") || s.Equals("/")) && (lexeme.Equals("+") || lexeme.Equals("-")))
+					if (getPrecedence(s) > getPrecedence(lexeme))
 					{
 						while (stack.Count != 0)
 						{
@@ -252,6 +258,23 @@ namespace cscalc
 					stack.Push(lexeme);
 				}
 				break;
+			}
+		}
+		
+		int getPrecedence(string lexeme)
+		{
+			switch (lexeme)
+			{
+			case "+":
+			case "-":
+				return 0;
+			case "*":
+			case "/":
+				return 1;
+			case "^":
+				return 2;
+			default:
+				throw new Exception("TODO unknown precendence for operator: " + lexeme);
 			}
 		}
 		
@@ -285,6 +308,28 @@ namespace cscalc
 					b = (decimal) stack.Pop();
 					stack.Push(b / a);
 					break;
+				case "^":
+					a = (decimal) stack.Pop();
+					b = (decimal) stack.Pop();
+					// TODO Math.Pow only accepts doubles, gets complicated ...
+					// stack.Push(Math.Pow(b, a));
+					decimal d = b;
+					while ((a -= 1) > 0)
+					{
+						Console.WriteLine("a:" + a);
+						if (a < 1)
+						{
+							d *= (a*b);
+							Console.WriteLine("" + (a*b));
+						}
+						else
+						{
+							d *= b;
+						}
+						Console.WriteLine("d:" + d);
+					}
+					stack.Push(d);
+					break;
 				default:
 					throw new Exception("TODO Unhandled operator: " + val);
 				}
@@ -313,6 +358,21 @@ namespace cscalc
 			{
 				Console.Write ("Eval: " + val);
 			}
+		}
+	}
+	
+	public class MainService : WebService
+	{
+		[WebMethod]
+		public string Evaluate(string input)
+		{
+			Parser parser = new Parser();
+			decimal val = parser.Parse(input);
+			if (val % 1 == 0)
+			{
+				return "" + ((double) val);
+			}
+			return "" + val;
 		}
 	}
 }
