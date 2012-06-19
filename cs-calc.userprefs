@@ -2,7 +2,8 @@
   <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug|x86" />
   <MonoDevelop.Ide.Workbench ActiveDocument="cs-calc/Main.cs">
     <Files>
-      <File FileName="cs-calc/Main.cs" Line="214" Column="28" />
+      <File FileName="cs-calc/Main.cs" Line="36" Column="2" />
+      <File FileName="cs-calc/AssemblyInfo.cs" Line="11" Column="32" />
     </Files>
   </MonoDevelop.Ide.Workbench>
   <MonoDevelop.Ide.DebuggingService.Breakpoints>
