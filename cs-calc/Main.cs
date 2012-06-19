@@ -4,6 +4,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Web.Services;
+using System.Globalization;
 
 namespace CsCalc
 {
@@ -572,7 +573,8 @@ namespace CsCalc
 			
 			Parser parser = new Parser();
 			decimal val = parser.Parse(input);
-			Console.Write("Eval: " + val.ToString("#." + new string('#', 30)));
+			//Console.Write("Eval: " + val.ToString("#." + new string('#', 30)));
+			Console.Write("Eval: " + val.ToString("G", CultureInfo.InvariantCulture));
 		}
 	}
 	
@@ -586,7 +588,7 @@ namespace CsCalc
 		{
 			Parser parser = new Parser();
 			decimal val = parser.Parse(input);
-			return val.ToString("#." + new string('#', 30));
+			return val.ToString(val.ToString("G", CultureInfo.InvariantCulture));
 		}
 	}
 }
