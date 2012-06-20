@@ -380,7 +380,7 @@ namespace CsCalc
 				else
 				{
 					s = (string) stack.Peek();
-					if (getPrecedence(s) > getPrecedence(lexeme))
+					if (!s.Equals("(") && (getPrecedence(s) > getPrecedence(lexeme)))
 					{
 						while (stack.Count != 0)
 						{
@@ -489,12 +489,12 @@ namespace CsCalc
 			{
 			case "+":
 			case "-":
-				return 0;
+				return 1;
 			case "*":
 			case "/":
-				return 1;
-			case "^":
 				return 2;
+			case "^":
+				return 3;
 			default:
 				throw new Exception("TODO unknown precendence for operator: " + lexeme);
 			}
