@@ -442,6 +442,8 @@ namespace CsCalc
 		/// in the set [("two", "hundred"), ("three",)] thus resulting in the expression (2 * 100) + (3). There is one exception to
 		/// this rule, words that end in "ty", of which tuple contents should be added. The implementation here forgoes the above
 		/// structuring.
+		/// 
+		/// BUG: words that end in "ty" should only be added to their partner if greater than, otherwise multiply.
 		/// </summary>
 		void flushWordNumBuf()
 		{
@@ -573,7 +575,6 @@ namespace CsCalc
 			
 			Parser parser = new Parser();
 			decimal val = parser.Parse(input);
-			//Console.Write("Eval: " + val.ToString("#." + new string('#', 30)));
 			Console.Write("Eval: " + val.ToString("G", CultureInfo.InvariantCulture));
 		}
 	}
@@ -586,6 +587,7 @@ namespace CsCalc
 		[WebMethod]
 		public string Evaluate(string input)
 		{
+			//string userName = Request.QueryString["username"];
 			Parser parser = new Parser();
 			decimal val = parser.Parse(input);
 			return val.ToString(val.ToString("G", CultureInfo.InvariantCulture));
